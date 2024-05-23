@@ -1,15 +1,28 @@
 // ℹ️ Gets access to environment variables/settings
 // https://www.npmjs.com/package/dotenv
 require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+// Enable CORS for requests from http://localhost:5173
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  })
+);
+
+// Middleware for parsing JSON bodies
+app.use(express.json());
 
 // ℹ️ Connects to the database
 require("./db");
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
-const express = require("express");
-
-const app = express();
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);

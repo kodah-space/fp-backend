@@ -1,5 +1,19 @@
 const express = require("express");
 const router = express.Router();
+const cors = require("cors");
+const app = express();
+
+// Enable CORS for requests from http://localhost:5173
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  })
+);
+
+// Other middleware (like body parser)
+app.use(express.json());
 
 // ℹ️ Handles password encryption
 const bcrypt = require("bcrypt");
@@ -18,11 +32,26 @@ const saltRounds = 10;
 
 // POST /auth/signup  - Creates a new user in the database
 router.post("/signup", (req, res, next) => {
-  const { email, password, name } = req.body;
+  const { userName, email, password, name, profilePic, dateOfBirth } = req.body;
 
   // Check if email or password or name are provided as empty strings
-  if (email === "" || password === "" || name === "") {
-    res.status(400).json({ message: "Provide email, password and name" });
+  if (
+    userName === "" ||
+    email === "" ||
+    password === "" ||
+    name === "" ||
+    dateOfBirth === ""
+  ) {
+    res
+      .status(400)
+      .json({ message: "Provide User Id, email, password , DoB and name" });
+    return;
+  }
+
+  // This regular expression check that the User Id is of a valid format
+  const userNameRegex = /^[a-zA-Z0-9]{5,25}$/;
+  if (!userNameRegex.test(userName)) {
+    res.status(400).json({ message: "Provide a valid User Id ." });
     return;
   }
 
@@ -43,12 +72,25 @@ router.post("/signup", (req, res, next) => {
     return;
   }
 
-  // Check the users collection if a user with the same email already exists
-  User.findOne({ email })
+  const dateOfBirthRegex =
+    /^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/;
+  if (!dateOfBirthRegex.test(dateOfBirth)) {
+    res
+      .status(400)
+      .json({ message: "Provide a valid date of birth (YYYY-MM-DD)." });
+    return;
+  }
+
+  // Check the users collection if a user with the same email or userName already exists
+  User.findOne({ $or: [{ email }, { userName }] })
     .then((foundUser) => {
-      // If the user with the same email already exists, send an error response
+      // If the user with the same email or userName already exists, send an error response
       if (foundUser) {
-        res.status(400).json({ message: "User already exists." });
+        if (foundUser.email === email) {
+          res.status(400).json({ message: "Email already exists." });
+        } else {
+          res.status(400).json({ message: "User ID already exists." });
+        }
         return;
       }
 
@@ -58,15 +100,21 @@ router.post("/signup", (req, res, next) => {
 
       // Create the new user in the database
       // We return a pending promise, which allows us to chain another `then`
-      return User.create({ email, password: hashedPassword, name });
+      return User.create({
+        userName,
+        email,
+        password: hashedPassword,
+        name,
+        dateOfBirth,
+      });
     })
     .then((createdUser) => {
       // Deconstruct the newly created user object to omit the password
       // We should never expose passwords publicly
-      const { email, name, _id } = createdUser;
+      const { userName, email, name, dateOfBirth, _id } = createdUser;
 
       // Create a new object that doesn't expose the password
-      const user = { email, name, _id };
+      const user = { userName, email, name, dateOfBirth, _id };
 
       // Send a json response containing the user object
       res.status(201).json({ user: user });
@@ -98,10 +146,10 @@ router.post("/login", (req, res, next) => {
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
-        const { _id, email, name } = foundUser;
+        const { _id, email, dateOfBirth, name, userName } = foundUser;
 
         // Create an object that will be set as the token payload
-        const payload = { _id, email, name };
+        const payload = { _id, email, dateOfBirth, name, userName };
 
         // Create a JSON Web Token and sign it
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
