@@ -1,19 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const cors = require("cors");
-const app = express();
-
-// Enable CORS for requests from http://localhost:5173
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true,
-  })
-);
-
-// Other middleware (like body parser)
-app.use(express.json());
 
 // ℹ️ Handles password encryption
 const bcrypt = require("bcrypt");
@@ -174,6 +160,77 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 
   // Send back the token payload object containing the user data
   res.status(200).json(req.payload);
+});
+
+// PUT /auth/update - Updates the user profile
+router.put("/update", isAuthenticated, (req, res, next) => {
+  const { userName, email, password, name, dateOfBirth } = req.body;
+  const userId = req.payload._id;
+
+  // Validate input data
+  if (userName && !/^[a-zA-Z0-9]{5,25}$/.test(userName)) {
+    res.status(400).json({ message: "Provide a valid User Id ." });
+    return;
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    res.status(400).json({ message: "Provide a valid email address." });
+    return;
+  }
+
+  if (password && !/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/.test(password)) {
+    res.status(400).json({
+      message:
+        "Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.",
+    });
+    return;
+  }
+
+  if (
+    dateOfBirth &&
+    !/^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(dateOfBirth)
+  ) {
+    res
+      .status(400)
+      .json({ message: "Provide a valid date of birth (YYYY-MM-DD)." });
+    return;
+  }
+
+  // Check if the email or userName is already taken by another user
+  User.findOne({ $or: [{ email }, { userName }] })
+    .then((foundUser) => {
+      if (foundUser && foundUser._id.toString() !== userId) {
+        if (foundUser.email === email) {
+          res.status(400).json({ message: "Email already exists." });
+        } else {
+          res.status(400).json({ message: "User ID already exists." });
+        }
+        return;
+      }
+
+      // Proceed with the update
+      const updateData = { userName, email, name, dateOfBirth };
+
+      // Hash the new password if it is provided
+      if (password) {
+        const salt = bcrypt.genSaltSync(saltRounds);
+        updateData.password = bcrypt.hashSync(password, salt);
+      }
+
+      return User.findByIdAndUpdate(userId, updateData, { new: true });
+    })
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        res.status(404).json({ message: "User not found." });
+        return;
+      }
+
+      const { userName, email, name, dateOfBirth, _id } = updatedUser;
+      const user = { userName, email, name, dateOfBirth, _id };
+
+      res.status(200).json({ user });
+    })
+    .catch((err) => next(err));
 });
 
 module.exports = router;
