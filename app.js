@@ -40,6 +40,18 @@ app.use("/api", communityRoutes);
 const eventRoutes = require("./routes/event.routes");
 app.use("/api", eventRoutes);
 
+const taskRoutes = require("./routes/task.routes");
+app.use("/api", taskRoutes);
+
+const checkListRoutes = require("./routes/checklist.routes");
+app.use("/api", checkListRoutes);
+
+const checkListItemsRoutes = require("./routes/checkListItem.routes");
+app.use("/api", checkListItemsRoutes);
+
+const rsvpRoutes = require("./routes/rsvp.routes");
+app.use("/api", rsvpRoutes);
+
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
 

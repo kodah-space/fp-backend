@@ -32,6 +32,8 @@ const eventSchema = new Schema(
         "Trip",
         "Online",
         "Performance",
+        "Conference",
+        "Exhibition",
       ],
       required: [true, "Type of event is required."],
     },
