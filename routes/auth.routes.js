@@ -92,15 +92,17 @@ router.post("/signup", (req, res, next) => {
         password: hashedPassword,
         name,
         dateOfBirth,
+        profilePic,
       });
     })
     .then((createdUser) => {
       // Deconstruct the newly created user object to omit the password
       // We should never expose passwords publicly
-      const { userName, email, name, dateOfBirth, _id } = createdUser;
+      const { userName, email, name, dateOfBirth, _id, profilePic } =
+        createdUser;
 
       // Create a new object that doesn't expose the password
-      const user = { userName, email, name, dateOfBirth, _id };
+      const user = { userName, email, name, dateOfBirth, _id, profilePic };
 
       // Send a json response containing the user object
       res.status(201).json({ user: user });
@@ -132,10 +134,11 @@ router.post("/login", (req, res, next) => {
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
-        const { _id, email, dateOfBirth, name, userName } = foundUser;
+        const { _id, email, dateOfBirth, name, userName, profilePic } =
+          foundUser;
 
         // Create an object that will be set as the token payload
-        const payload = { _id, email, dateOfBirth, name, userName };
+        const payload = { _id, email, dateOfBirth, name, userName, profilePic };
 
         // Create a JSON Web Token and sign it
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
@@ -164,7 +167,7 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
 
 // PUT /auth/update - Updates the user profile
 router.put("/update", isAuthenticated, (req, res, next) => {
-  const { userName, email, password, name, dateOfBirth } = req.body;
+  const { userName, profilePic, email, password, name, dateOfBirth } = req.body;
   const userId = req.payload._id;
 
   // Validate input data
@@ -209,7 +212,7 @@ router.put("/update", isAuthenticated, (req, res, next) => {
       }
 
       // Proceed with the update
-      const updateData = { userName, email, name, dateOfBirth };
+      const updateData = { userName, email, name, dateOfBirth, profilePic };
 
       // Hash the new password if it is provided
       if (password) {
@@ -225,8 +228,9 @@ router.put("/update", isAuthenticated, (req, res, next) => {
         return;
       }
 
-      const { userName, email, name, dateOfBirth, _id } = updatedUser;
-      const user = { userName, email, name, dateOfBirth, _id };
+      const { userName, email, name, dateOfBirth, _id, profilePic } =
+        updatedUser;
+      const user = { userName, email, name, dateOfBirth, _id, profilePic };
 
       res.status(200).json({ user });
     })
