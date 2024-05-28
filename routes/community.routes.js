@@ -13,8 +13,8 @@ const {
 router.get("/communities", getAllCommunities);
 router.get("/communities/:id", getCommunityById);
 router.post("/communities/", createCommunity);
-router.get("/communities/createdBy/:userId", getCommunitiesCreatedByUser); // New route for communities created by user
-router.get("/communities/memberOf/:userId", getCommunitiesUserIsMemberOf);
+router.get("/communities/createdby/:userId", getCommunitiesCreatedByUser); // New route for communities created by user
+router.get("/communities/joinedby/:userId", getCommunitiesUserIsMemberOf);
 router.put("/communities/:id", updateCommunity);
 router.delete("/communities/:id", deleteCommunity);
 

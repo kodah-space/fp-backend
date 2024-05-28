@@ -1,6 +1,8 @@
 const Community = require("../models/Community.model");
 
 exports.getAllCommunities = async (req, res) => {
+  const { createdby } = req.query;
+
   try {
     const communities = await Community.find().populate(
       "creator members events"
@@ -13,6 +15,8 @@ exports.getAllCommunities = async (req, res) => {
 
 exports.getCommunityById = async (req, res) => {
   try {
+    const { id } = req.params;
+    console.log(id);
     const community = await Community.findById(req.params.id).populate(
       "creator members events"
     );
@@ -63,9 +67,9 @@ exports.deleteCommunity = async (req, res) => {
 exports.getCommunitiesCreatedByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const communities = await Community.find({ creator: userId }).populate(
-      "creator members events"
-    );
+    const communities = await Community.find({
+      creator: { _id: userId },
+    }).populate("creator members events");
     res.json(communities);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -75,6 +79,7 @@ exports.getCommunitiesCreatedByUser = async (req, res) => {
 exports.getCommunitiesUserIsMemberOf = async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(userId);
     const communities = await Community.find({ members: userId }).populate(
       "creator members events"
     );
