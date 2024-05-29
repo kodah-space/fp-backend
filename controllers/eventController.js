@@ -80,3 +80,12 @@ exports.deleteEvent = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getEventTypes = async (req, res) => {
+  try {
+    const eventTypes = Event.schema.path("typeOfEvent").enumValues;
+    res.json(eventTypes);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
