@@ -9,6 +9,8 @@ const communitySchema = new Schema(
     },
     communityImage: {
       type: String,
+      default:
+        "https://static.wixstatic.com/media/7e619e_a97319449991416a978e2d52ba6bfadb~mv2.jpg/v1/fill/w_1359,h_944,al_c,q_85,enc_auto/7e619e_a97319449991416a978e2d52ba6bfadb~mv2.jpg",
     },
     description: {
       type: String,
