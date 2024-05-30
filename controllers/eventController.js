@@ -89,3 +89,28 @@ exports.getEventTypes = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getEventsCreatedByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const events = await Event.find({
+      creator: { _id: userId },
+    }).populate("creator attendees");
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getEventsToAttendByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(userId);
+    const events = await Event.find({ attendees: userId }).populate(
+      "creator attendees"
+    );
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
