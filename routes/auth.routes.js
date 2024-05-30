@@ -251,7 +251,7 @@ router.put("/update", isAuthenticated, (req, res, next) => {
       const user = { userName, email, name, dateOfBirth, _id, profilePic };
       req.payload = user;
       console.log("updated user:", user);
-      return;
+
       res.status(200).json({ user });
     })
     .catch((err) => next(err));
