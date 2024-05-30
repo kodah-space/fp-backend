@@ -66,3 +66,14 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getTasksByContibutorId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(userId);
+    const tasks = await Task.find({ contributors: userId });
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
